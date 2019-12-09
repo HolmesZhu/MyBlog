@@ -1,0 +1,60 @@
+package com.site.blog.my.core.service.impl;
+
+import com.site.blog.my.core.model.AdminUser;
+import com.site.blog.my.core.repository.AdminUserRepository;
+import com.site.blog.my.core.service.AdminUserService;
+import com.site.blog.my.core.util.MD5Util;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+
+@Service
+public class AdminUserServiceImpl implements AdminUserService {
+
+    @Resource
+    private AdminUserRepository adminUserRepository;
+
+
+    @Override
+    public AdminUser login(String userName, String password) {
+//        String passwordMd5 = MD5Util.MD5Encode(password, "UTF-8");
+        return adminUserRepository.findByLoginUserNameAndLoginPassword(userName, password);
+    }
+
+    @Override
+    public AdminUser getUserDetailById(Integer loginUserId) {
+        return adminUserRepository.findByAdminUserId(loginUserId);
+    }
+
+    @Override
+    public Boolean updatePassword(Integer loginUserId, String originalPassword, String newPassword) {
+        AdminUser adminUser = adminUserRepository.findByAdminUserId(loginUserId);
+        //当前用户非空才可以进行更改
+        if (adminUser != null) {
+//            String originalPasswordMd5 = MD5Util.MD5Encode(originalPassword, "UTF-8");
+//            String newPasswordMd5 = MD5Util.MD5Encode(newPassword, "UTF-8");
+            //比较原密码是否正确
+            if (originalPassword.equals(adminUser.getLoginPassword())) {
+                //设置新密码并修改
+                adminUser.setLoginPassword(newPassword);
+                adminUserRepository.save(adminUser);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public Boolean updateName(Integer loginUserId, String loginUserName, String nickName) {
+        AdminUser adminUser = adminUserRepository.findByAdminUserId(loginUserId);
+        //当前用户非空才可以进行更改
+        if (adminUser != null) {
+            //设置新密码并修改
+            adminUser.setLoginUserName(loginUserName);
+            adminUser.setNickName(nickName);
+            adminUserRepository.save(adminUser);
+            return true;
+        }
+        return false;
+    }
+}
