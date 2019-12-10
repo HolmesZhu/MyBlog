@@ -1,8 +1,8 @@
 package com.site.blog.my.core.controller.blog;
 
 import com.site.blog.my.core.controller.vo.BlogDetailVO;
-import com.site.blog.my.core.entity.BlogComment;
-import com.site.blog.my.core.entity.BlogLink;
+import com.site.blog.my.core.model.BlogComment;
+import com.site.blog.my.core.model.BlogLink;
 import com.site.blog.my.core.service.*;
 import com.site.blog.my.core.util.*;
 import org.springframework.stereotype.Controller;

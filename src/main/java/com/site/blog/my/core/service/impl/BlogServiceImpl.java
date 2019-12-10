@@ -5,9 +5,9 @@ import com.site.blog.my.core.controller.vo.BlogListVO;
 import com.site.blog.my.core.controller.vo.SimpleBlogListVO;
 import com.site.blog.my.core.dao.*;
 import com.site.blog.my.core.model.Blog;
-import com.site.blog.my.core.entity.BlogCategory;
-import com.site.blog.my.core.entity.BlogTag;
-import com.site.blog.my.core.entity.BlogTagRelation;
+import com.site.blog.my.core.model.BlogCategory;
+import com.site.blog.my.core.model.BlogTag;
+import com.site.blog.my.core.model.BlogTagRelation;
 import com.site.blog.my.core.repository.BlogRepository;
 import com.site.blog.my.core.service.BlogService;
 import com.site.blog.my.core.util.MarkDownUtil;
@@ -16,6 +16,10 @@ import com.site.blog.my.core.util.PageResult;
 import com.site.blog.my.core.util.PatternUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -100,7 +104,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public PageResult getBlogsPage(PageQueryUtil pageUtil) {
-        List<Blog> blogList = blogRepository.findBlogList(pageUtil);
+        List<Blog> blogList = blogMapper.findBlogList(pageUtil);
         int total = blogMapper.getTotalBlogs(pageUtil);
         PageResult pageResult = new PageResult(blogList, total, pageUtil.getLimit(), pageUtil.getPage());
         return pageResult;
@@ -197,7 +201,7 @@ public class BlogServiceImpl implements BlogService {
         params.put("limit", 8);
         params.put("blogStatus", 1);//过滤发布状态下的数据
         PageQueryUtil pageUtil = new PageQueryUtil(params);
-        List<Blog> blogList = blogRepository.findBlogList(pageUtil);
+        List<Blog> blogList = blogMapper.findBlogList(pageUtil);
         List<BlogListVO> blogListVOS = getBlogListVOsByBlogs(blogList);
         int total = blogMapper.getTotalBlogs(pageUtil);
         PageResult pageResult = new PageResult(blogListVOS, total, pageUtil.getLimit(), pageUtil.getPage());
@@ -207,8 +211,19 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public List<SimpleBlogListVO> getBlogListForIndexPage(int type) {
         List<SimpleBlogListVO> simpleBlogListVOS = new ArrayList<>();
-        List<Blog> blogs = blogRepository.findByTypeAndLimit(type, 9);
-        if (!CollectionUtils.isEmpty(blogs)) {
+        Page<Blog> blogs = null;
+
+        if (type == 0) {
+            Sort sort = new Sort(Sort.Direction.DESC, "blogViews");
+            Pageable pageable = PageRequest.of(0, 9, sort);
+            blogs = blogRepository.findAll(pageable);
+        } else if (type == 1) {
+            Sort sort = new Sort(Sort.Direction.DESC, "blogId");
+            Pageable pageable = PageRequest.of(0, 9, sort);
+            blogs = blogRepository.findAll(pageable);
+        }
+
+        if (blogs != null && blogs.getSize() != 0) {
             for (Blog blog : blogs) {
                 SimpleBlogListVO simpleBlogListVO = new SimpleBlogListVO();
                 BeanUtils.copyProperties(blog, simpleBlogListVO);
@@ -239,7 +254,7 @@ public class BlogServiceImpl implements BlogService {
                 param.put("limit", 9);
                 param.put("tagId", tag.getTagId());
                 PageQueryUtil pageUtil = new PageQueryUtil(param);
-                List<Blog> blogList = blogRepository.getBlogsPageByTagId(pageUtil);
+                List<Blog> blogList = blogMapper.getBlogsPageByTagId(pageUtil);
                 List<BlogListVO> blogListVOS = getBlogListVOsByBlogs(blogList);
                 int total = blogMapper.getTotalBlogsByTagId(pageUtil);
                 PageResult pageResult = new PageResult(blogListVOS, total, pageUtil.getLimit(), pageUtil.getPage());
@@ -264,7 +279,7 @@ public class BlogServiceImpl implements BlogService {
                 param.put("blogCategoryId", blogCategory.getCategoryId());
                 param.put("blogStatus", 1);//过滤发布状态下的数据
                 PageQueryUtil pageUtil = new PageQueryUtil(param);
-                List<Blog> blogList = blogRepository.findBlogList(pageUtil);
+                List<Blog> blogList = blogMapper.findBlogList(pageUtil);
                 List<BlogListVO> blogListVOS = getBlogListVOsByBlogs(blogList);
                 int total = blogMapper.getTotalBlogs(pageUtil);
                 PageResult pageResult = new PageResult(blogListVOS, total, pageUtil.getLimit(), pageUtil.getPage());
@@ -283,7 +298,7 @@ public class BlogServiceImpl implements BlogService {
             param.put("keyword", keyword);
             param.put("blogStatus", 1);//过滤发布状态下的数据
             PageQueryUtil pageUtil = new PageQueryUtil(param);
-            List<Blog> blogList = blogRepository.findBlogList(pageUtil);
+            List<Blog> blogList = blogMapper.findBlogList(pageUtil);
             List<BlogListVO> blogListVOS = getBlogListVOsByBlogs(blogList);
             int total = blogMapper.getTotalBlogs(pageUtil);
             PageResult pageResult = new PageResult(blogListVOS, total, pageUtil.getLimit(), pageUtil.getPage());

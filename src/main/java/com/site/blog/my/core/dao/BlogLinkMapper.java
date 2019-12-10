@@ -1,6 +1,6 @@
 package com.site.blog.my.core.dao;
 
-import com.site.blog.my.core.entity.BlogLink;
+import com.site.blog.my.core.model.BlogLink;
 import com.site.blog.my.core.util.PageQueryUtil;
 
 import java.util.List;
